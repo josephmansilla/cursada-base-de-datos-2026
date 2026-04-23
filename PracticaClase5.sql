@@ -73,7 +73,16 @@ JOIN units u ON (p.unit_code = u.unit_code);
 */
 
 -- 7)
-
+/*
+SELECT order_num AS numero_pedido,
+	i.item_num AS numero_item,
+	pt.description AS descripcion,
+	i.quantity AS cantidad,
+	(i.unit_price * i.quantity) AS precio_total
+FROM items i
+JOIN product_types pt ON (pt.stock_num = i.stock_num)
+WHERE i.order_num = 1004
+*/
 -- 8)
 /*
 SELECT DISTINCT m.manu_name, m.lead_time
@@ -83,9 +92,25 @@ FROM manufact m
 WHERE o.customer_num = 104;
 */
 -- 9)
+/*
+SELECT i.order_num AS numero_pedido,
+	o.order_date AS fecha_pedido,
+	i.item_num AS numero_item,
+	pt.description AS descripcion,
+	i.quantity AS cantidad,
+	(i.unit_price * i.quantity) AS precio_total
+FROM items i
+JOIN product_types pt ON (pt.stock_num = i.stock_num)
+JOIN orders o ON (o.order_num = i.order_num);
+*/
 
 -- 10)
-
+/*
+SELECT lname + ', ' + fname AS nombre_cliente,
+	'('+LEFT(phone,3)+') '+SUBSTRING(phone,5,8) AS celular
+FROM customer
+ORDER BY nombre_cliente;
+*/
 -- 11)
 /*
 SELECT o.ship_date AS fecha_embarque,
@@ -100,7 +125,7 @@ GROUP BY ship_date, lname, fname
 ORDER BY ship_date, lname, fname;
 */
 -- 12)
-
+/*
 SELECT m.manu_name AS nombre_fabricante,
 	m.manu_code AS codigo_fabricante,
 	pt.description AS producto,
@@ -114,3 +139,4 @@ WHERE m.manu_code IN ('ANZ', 'HRO', 'HSK', 'SMT')
 	AND YEAR(o.ship_date) = 2015 AND MONTH(o.ship_date) IN (5,6)
 GROUP BY m.manu_code, m.manu_name, i.stock_num, pt.description
 ORDER BY SUM(i.quantity * i.unit_price) DESC;
+*/

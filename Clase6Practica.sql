@@ -1,0 +1,68 @@
+-- 1) Mostrar el Código del fabricante, nombre del fabricante, tiempo de entrega y monto
+-- Total de productos vendidos, ordenado por nombre de fabricante. En caso que el
+-- fabricante no tenga ventas, mostrar el total en NULO.
+/*
+SELECT m.manu_code AS codigo_fabricante, 
+	m.manu_name AS nombre_fabricante, 
+	m.lead_time AS tiempo_de_entrega,
+	(SELECT coalesce(SUM(unit_price * quantity), 0) FROM items WHERE order_num IS NOT NULL AND manu_code = m.manu_code) AS total_productos_vendidos 
+FROM manufact m
+ORDER BY m.manu_code, m.manu_name, m.lead_time
+
+-- version sin subquery
+SELECT m.manu_code, manu_name, lead_time, coalesce(SUM(i.quantity * i.unit_price),0) monto_total
+	FROM manufact m LEFT JOIN items i  ON m.manu_code = i.manu_code
+	GROUP BY m.manu_code, manu_name, lead_time
+*/
+
+-- 2) Mostrar en una lista de a pares, el código y descripción del producto, y los pares de
+-- fabricantes que fabriquen el mismo producto. En el caso que haya un único fabricante
+-- deberá mostrar el Código de fabricante 2 en nulo. Ordenar el resultado por código de
+-- producto.
+
+
+SELECT pt.stock_num AS numero_producto,
+	pt.description AS descripcion, 
+	p.manu_code AS codigo_fabricante_1,
+	pp.manu_code AS codigo_fabricante_2
+FROM product_types pt
+	JOIN products p ON pt.stock_num = p.stock_num
+	LEFT JOIN products pp ON p.stock_num = pp.stock_num
+		AND p.manu_code < pp.manu_code
+ORDER BY pt.stock_num, 3
+
+
+-- 3) Listar todos los clientes que hayan tenido más de una orden.
+-- formato numero nombre apellido
+
+-- a) En primer lugar, escribir una consulta usando una subconsulta.
+/*
+SELECT customer_num, fname, lname 
+  FROM CUSTOMER C
+ WHERE (SELECT COUNT(*) FROM ORDERS O where o.customer_num = c.customer_num)
+        > 1;
+*/
+-- b) reescribir la consulta usando GROUP BY y HAVING
+/*
+SELECT c.customer_num AS numero_cliente, c.fname AS nombre, c.lname as apellido
+FROM customer c
+JOIN orders o ON c.customer_num = o.customer_num
+GROUP BY c.customer_num, c.fname, c.lname
+HAVING COUNT(o.order_num) >= 1;
+*/
+-- 4) Seleccionar todas las Órdenes de compra cuyo Monto total (Suma de p x q de sus items)
+-- sea menor al precio total promedio (avg p x q) de todas las líneas de las ordenes.
+
+
+-- 8) fabrica 10 - vende 10 -> se vendió todo (comparaciones)
+-- hay algun producto que no le compre a HSK -> no se vendio todo (op. de conj)
+
+
+-- 11)  Desarrollar una consulta que devuelva los dos tipos de productos más vendidos y los dos
+-- menos vendidos en función de las unidades totales vendidas.
+-- FORMATO: tipo - cantidad
+/*
+SELECT pt.stock_num AS tipo_producto, COUNT(u.unit_code) AS cantidad
+FROM product_types pt
+LIMIT 2
+ORDER BY cantidad ASC*/

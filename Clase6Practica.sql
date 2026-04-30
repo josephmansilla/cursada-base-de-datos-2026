@@ -20,7 +20,7 @@ SELECT m.manu_code, manu_name, lead_time, coalesce(SUM(i.quantity * i.unit_price
 -- deberá mostrar el Código de fabricante 2 en nulo. Ordenar el resultado por código de
 -- producto.
 
-
+/*
 SELECT pt.stock_num AS numero_producto,
 	pt.description AS descripcion, 
 	p.manu_code AS codigo_fabricante_1,
@@ -30,7 +30,7 @@ FROM product_types pt
 	LEFT JOIN products pp ON p.stock_num = pp.stock_num
 		AND p.manu_code < pp.manu_code
 ORDER BY pt.stock_num, 3
-
+*/
 
 -- 3) Listar todos los clientes que hayan tenido más de una orden.
 -- formato numero nombre apellido
@@ -53,16 +53,65 @@ HAVING COUNT(o.order_num) >= 1;
 -- 4) Seleccionar todas las Órdenes de compra cuyo Monto total (Suma de p x q de sus items)
 -- sea menor al precio total promedio (avg p x q) de todas las líneas de las ordenes.
 
+-- 5)
+
+-- 6) 
+
+-- 7)
 
 -- 8) fabrica 10 - vende 10 -> se vendió todo (comparaciones)
 -- hay algun producto que no le compre a HSK -> no se vendio todo (op. de conj)
 
 
+-- 9) Reescribir la siguiente consulta utilizando el operador UNION:
+		--SELECT * FROM products
+		--WHERE manu_code = 'HRO' OR stock_num = 1
+
+/*
+SELECT * FROM products
+WHERE manu_code = 'HRO'
+UNION 
+SELECT * FROM products
+WHERE stock_num = 1;
+*/
+
+-- 10) Desarrollar una consulta que devuelva las ciudades y compañías de todos los Clientes
+-- ordenadas alfabéticamente por Ciudad pero en la consulta deberán aparecer primero las
+-- compañías situadas en Redwood City y luego las demás.
+-- formato: sortkey - ciudad - compañia
+/*
+SELECT 1 AS clave_ordenamiento,
+	city AS ciudad,
+	company AS compañía
+FROM customer 
+WHERE city LIKE '%Redwood City%'
+UNION 
+SELECT 2 AS clave_ordenamiento,
+	city AS ciudad,
+	company AS compañía
+FROM customer
+ORDER BY 1, 2;
+*/
+
 -- 11)  Desarrollar una consulta que devuelva los dos tipos de productos más vendidos y los dos
 -- menos vendidos en función de las unidades totales vendidas.
 -- FORMATO: tipo - cantidad
 /*
-SELECT pt.stock_num AS tipo_producto, COUNT(u.unit_code) AS cantidad
-FROM product_types pt
-LIMIT 2
-ORDER BY cantidad ASC*/
+SELECT * FROM (
+	SELECT TOP 2 pt.stock_num AS tipo_producto, SUM(i.quantity) AS cantidad
+		FROM (items i
+		JOIN product_types pt ON (pt.stock_num = i.stock_num))
+		GROUP BY pt.stock_num
+		ORDER BY SUM(i.quantity) DESC
+) AS MasVendidos
+
+UNION ALL 
+
+SELECT * FROM (
+	SELECT TOP 2 pt.stock_num AS tipo_producto, SUM(i.quantity) AS cantidad
+	FROM items i
+		JOIN product_types pt ON (pt.stock_num = i.stock_num)
+	GROUP BY pt.stock_num
+	ORDER BY SUM(i.quantity) ASC
+) AS MenosVendidos;
+*/

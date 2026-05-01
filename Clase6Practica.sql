@@ -68,21 +68,62 @@ HAVING SUM(i.unit_price * i.quantity) < (SELECT	AVG(unit_price * quantity) FROM 
 -- 5) Obtener por cada fabricante, el listado de todos los productos de stock con precio
 -- unitario (unit_price) mayor que el precio unitario promedio de dicho fabricante.
 -- Los campos de salida serán: manu_code, manu_name, stock_num, description, unit_price.
+/*
+SELECT m.manu_code, m.manu_name, 
+		p.stock_num, pt.description, p.unit_price
+FROM manufact m
+	JOIN products p ON (p.manu_code = m.manu_code)
+	JOIN product_types pt ON (pt.stock_num = p.stock_num)
+WHERE p.unit_price > (SELECT AVG(unit_price) 
+						FROM products p2 JOIN manufact m2 ON (m2.manu_code = p2.manu_code)
+						WHERE p2.manu_code = m2.manu_code)
+*/
 
+-- 6) Usando el operador NOT EXISTS listar la información de órdenes de compra que NO
+-- incluyan ningún producto que contenga en su descripción el string ‘ baseball gloves’.
+-- Ordenar el resultado por compañía del cliente ascendente y número de orden descendente.
+-- formato numero_cliente, comapñia, numero_orden, fecha_orden
 
+/*
+SELECT o.customer_num AS numero_cliente, 
+		c.company AS compañía, 
+		o.order_num AS numero_orden, 
+		o.order_date AS fecha_orden
+FROM orders o JOIN customer c ON (c.customer_num = o.customer_num)
+WHERE NOT EXISTS (SELECT * FROM items i JOIN product_types pt ON (i.stock_num = pt.stock_num)
+				WHERE i.order_num = o.order_num AND pt.description LIKE '%baseball gloves%')
+ORDER BY c.customer_num ASC, o.order_num DESC;
+*/
 
-SELECT i.manu_code, AVG(unit_price * quantity) AS promedio_stock
-FROM items i JOIN manufact m ON (i.manu_code = m.manu_code)
-GROUP BY i.manu_code;
+-- 7) Obtener el número, nombre y apellido de los clientes que NO hayan comprado productos
+--	del fabricante ‘HSK’
 
-;
+/* 
+SELECT customer_num AS numero_cliente, fname+' '+lname AS nombre_cliente 
+FROM customer c
+WHERE customer_num NOT IN (SELECT o.customer_num FROM items i JOIN orders o ON (o.order_num = i.order_num)
+					WHERE manu_code LIKE 'HSK');
+				*/
 
--- 6) 
+-- 8) Obtener el número, nombre y apellido de los clientes que hayan comprado TODOS los
+--	productos del fabricante ‘HSK’.
 
--- 7)
-
--- 8) fabrica 10 - vende 10 -> se vendió todo (comparaciones)
+-- fabrica 10 - vende 10 -> se vendió todo (comparaciones)
 -- hay algun producto que no le compre a HSK -> no se vendio todo (op. de conj)
+
+SELECT customer_num AS numero_cliente, fname+' '+lname AS nombre_cliente 
+FROM customer c 
+WHERE NOT EXISTS (SELECT * FROM products W)
+
+SELECT manu_code, COUNT(*) FROM products
+GROUP BY manu_code
+ORDER BY manu_code ASC;
+
+SELECT DISTINCT manu_code, COUNT(*), o.customer_num FROM items i JOIN orders o ON (i.order_num = o.order_num)
+GROUP BY manu_code, o.customer_num
+ORDER BY manu_code ASC;
+
+
 
 
 -- 9) Reescribir la siguiente consulta utilizando el operador UNION:

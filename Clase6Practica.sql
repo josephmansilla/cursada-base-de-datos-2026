@@ -1,7 +1,14 @@
 -- 1) Mostrar el Código del fabricante, nombre del fabricante, tiempo de entrega y monto
 -- Total de productos vendidos, ordenado por nombre de fabricante. En caso que el
 -- fabricante no tenga ventas, mostrar el total en NULO.
+
 /*
+-- version sin subquery
+SELECT m.manu_code, manu_name, lead_time, coalesce(SUM(i.quantity * i.unit_price),0) monto_total
+	FROM manufact m LEFT JOIN items i  ON m.manu_code = i.manu_code
+	GROUP BY m.manu_code, manu_name, lead_time
+
+-- version con subquery, no tan linda...
 SELECT m.manu_code AS codigo_fabricante, 
 	m.manu_name AS nombre_fabricante, 
 	m.lead_time AS tiempo_de_entrega,
@@ -9,10 +16,6 @@ SELECT m.manu_code AS codigo_fabricante,
 FROM manufact m
 ORDER BY m.manu_code, m.manu_name, m.lead_time
 
--- version sin subquery
-SELECT m.manu_code, manu_name, lead_time, coalesce(SUM(i.quantity * i.unit_price),0) monto_total
-	FROM manufact m LEFT JOIN items i  ON m.manu_code = i.manu_code
-	GROUP BY m.manu_code, manu_name, lead_time
 */
 
 -- 2) Mostrar en una lista de a pares, el código y descripción del producto, y los pares de
@@ -39,8 +42,7 @@ ORDER BY pt.stock_num, 3
 /*
 SELECT customer_num, fname, lname 
   FROM CUSTOMER C
- WHERE (SELECT COUNT(*) FROM ORDERS O where o.customer_num = c.customer_num)
-        > 1;
+ WHERE (SELECT COUNT(*) FROM ORDERS O where o.customer_num = c.customer_num) > 1;
 */
 -- b) reescribir la consulta usando GROUP BY y HAVING
 /*
@@ -52,8 +54,28 @@ HAVING COUNT(o.order_num) >= 1;
 */
 -- 4) Seleccionar todas las Órdenes de compra cuyo Monto total (Suma de p x q de sus items)
 -- sea menor al precio total promedio (avg p x q) de todas las líneas de las ordenes.
+-- formato nro_orden - total
 
--- 5)
+/*
+SELECT o.order_num AS numero_orden,
+	SUM(i.unit_price * i.quantity) AS total
+FROM orders o
+	LEFT JOIN items i ON (i.order_num = o.order_num)
+GROUP BY o.order_num
+HAVING SUM(i.unit_price * i.quantity) < (SELECT	AVG(unit_price * quantity) FROM items);
+*/
+
+-- 5) Obtener por cada fabricante, el listado de todos los productos de stock con precio
+-- unitario (unit_price) mayor que el precio unitario promedio de dicho fabricante.
+-- Los campos de salida serán: manu_code, manu_name, stock_num, description, unit_price.
+
+
+
+SELECT i.manu_code, AVG(unit_price * quantity) AS promedio_stock
+FROM items i JOIN manufact m ON (i.manu_code = m.manu_code)
+GROUP BY i.manu_code;
+
+;
 
 -- 6) 
 

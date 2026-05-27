@@ -125,7 +125,6 @@ ORDER BY manu_code ASC;
 
 
 
-
 -- 9) Reescribir la siguiente consulta utilizando el operador UNION:
 		--SELECT * FROM products
 		--WHERE manu_code = 'HRO' OR stock_num = 1

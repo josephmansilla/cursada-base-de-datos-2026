@@ -1,0 +1,80 @@
+-- Mas queries complejos 2
+
+-- PUNTO 9
+-- FILAS ANTES DEL HAVING
+SELECT cus.customer_num, 
+		cus.fname AS nombre, 
+		cus.lname AS apellido,
+		st.sname AS estado,
+		COUNT(DISTINCT o1.order_num) AS cantidad_ordenes,
+		SUM(itm.unit_price * itm.quantity) AS monto_total
+FROM orders o1
+	JOIN customer cus ON cus.customer_num = o1.customer_num
+	JOIN state st ON cus.state = st.state
+	JOIN items itm ON itm.order_num = o1.order_num
+WHERE sname != 'Florida' AND '2015-01-01' <= o1.order_date AND o1.order_date < '2015-12-31'
+GROUP BY cus.customer_num,cus.fname, cus.lname, st.sname
+ORDER BY SUM(itm.unit_price * itm.quantity) DESC, sname DESC;
+
+-- PROMEDIO
+SELECT SUM(itm2.unit_price * itm2.quantity) / COUNT (DISTINCT o2.customer_num) AS monto_total
+FROM items itm2
+	JOIN orders o2 ON o2.order_num = itm2.order_num
+	JOIN customer cus2 ON o2.customer_num = cus2.customer_num
+	JOIN state st2 ON st2.state = cus2.state
+WHERE sname != 'Florida' AND '2015-01-01' <= o2.order_date AND o2.order_date < '2015-12-31'
+
+-- RESPUESTA FINAL 
+SELECT cus.customer_num AS numero_cliente, 
+		cus.fname AS nombre, 
+		cus.lname AS apellido,
+		st.sname AS estado,
+		COUNT(DISTINCT o1.order_num) AS cantidad_ordenes,
+		SUM(itm.unit_price * itm.quantity) AS monto_total
+FROM orders o1
+	JOIN customer cus ON cus.customer_num = o1.customer_num
+	JOIN state st ON cus.state = st.state
+	JOIN items itm ON itm.order_num = o1.order_num
+WHERE sname != 'Florida' 
+	AND '2015-01-01' <= o1.order_date 
+	AND o1.order_date < '2015-12-31'
+GROUP BY cus.customer_num,cus.fname, cus.lname, st.sname
+HAVING SUM(itm.unit_price * itm.quantity) >
+	(SELECT SUM(unit_price * quantity) / COUNT (DISTINCT o2.customer_num)
+	 FROM items itm2
+		JOIN orders o2 ON o2.order_num = itm2.order_num
+		JOIN customer cus2 ON o2.customer_num = cus2.customer_num
+		JOIN state st2 ON st2.state = cus2.state
+	 WHERE sname != 'Florida' 
+		AND '2015-01-01' <= o2.order_date 
+		AND o2.order_date < '2015-12-31')
+ORDER BY SUM(itm.unit_price * itm.quantity) DESC;
+
+
+-- PUNTO 10
+
+SELECT cus.customer_num AS numero_cliente,
+	ref.customer_num AS numero_cliente_ref,
+	cus.fname AS nombre,
+	cus.lname AS apellido,
+	SUM(itm.unit_price * itm.quantity) AS monto_total,
+	(SELECT SUM(quantity * unit_price) as total
+	 FROM items itm2
+			JOIN orders ord2 ON itm2.order_num = cus.customer_num_referedBy
+	 WHERE '2015-01-01' <= ord2.order_date AND ord2.order_date < '2015-12-31' 
+		AND ord2.customer_num = cus.customer_num_referedBy
+	) AS monto_total_referente
+FROM customer cus
+		LEFT JOIN customer ref ON ref.customer_num = cus.customer_num_referedBy
+		JOIN orders ord ON cus.customer_num = ord.customer_num
+		JOIN items itm ON itm.order_num = ord.order_num
+WHERE '2015-01-01' <= ord.order_date AND ord.order_date < '2015-12-31'
+GROUP BY ord.order_num, cus.customer_num, cus.fname, cus.lname, cus.customer_num_referedBy
+HAVING ref.customer_num_referedBy IS NOT NULL
+	AND SUM(itm.unit_price * itm.quantity) > 
+		COALESCE((SELECT SUM(quantity * unit_price) as total
+		 FROM items itm2
+				JOIN orders ord2 ON itm2.order_num = cus.customer_num_referedBy
+		 WHERE '2015-01-01' <= ord2.order_date AND ord2.order_date < '2015-12-31' 
+			AND ord2.customer_num = cus.customer_num_referedBy),0)
+ORDER BY 3

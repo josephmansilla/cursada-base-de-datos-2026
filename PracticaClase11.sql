@@ -54,10 +54,12 @@ ORDER BY SUM(itm.unit_price * itm.quantity) DESC;
 -- PUNTO 10
 
 SELECT cus.customer_num AS numero_cliente,
-	ref.customer_num AS numero_cliente_ref,
 	cus.fname AS nombre,
 	cus.lname AS apellido,
 	SUM(itm.unit_price * itm.quantity) AS monto_total,
+	ref.customer_num AS numero_cliente_ref,
+	ref.fname AS nombre_referido,
+	ref.lname AS apellido_referido,
 	(SELECT SUM(quantity * unit_price) as total
 	 FROM items itm2
 			JOIN orders ord2 ON itm2.order_num = cus.customer_num_referedBy
@@ -70,11 +72,35 @@ FROM customer cus
 		JOIN items itm ON itm.order_num = ord.order_num
 WHERE '2015-01-01' <= ord.order_date AND ord.order_date < '2015-12-31'
 GROUP BY ord.order_num, cus.customer_num, cus.fname, cus.lname, cus.customer_num_referedBy
-HAVING ref.customer_num_referedBy IS NOT NULL
-	AND SUM(itm.unit_price * itm.quantity) > 
+HAVING SUM(itm.unit_price * itm.quantity) > 
 		COALESCE((SELECT SUM(quantity * unit_price) as total
 		 FROM items itm2
 				JOIN orders ord2 ON itm2.order_num = cus.customer_num_referedBy
 		 WHERE '2015-01-01' <= ord2.order_date AND ord2.order_date < '2015-12-31' 
 			AND ord2.customer_num = cus.customer_num_referedBy),0)
 ORDER BY 3
+
+
+SELECT cus.customer_num AS numero_cliente,
+	cus.fname AS nombre,
+	cus.lname AS apellido,
+	cc.monto_total AS monto_total,
+	ref.customer_num AS numero_cliente_ref,
+	ref.fname AS nombre_referido,
+	ref.lname AS apellido_referido,
+	cr.monto_total AS monto_total_referido
+FROM customer cus
+		JOIN (SELECT ord.customer_num, SUM(it.quantity * it.unit_price) monto_total
+			  FROM orders ord JOIN items it ON it.order_num = ord.order_num
+			  WHERE '2015-01-01' <= ord.order_date AND ord.order_date < '2015-12-31' 
+			  GROUP BY ord.customer_num
+		) cc ON cc.customer_num = cus.customer_num 
+ 		LEFT JOIN customer ref ON ref.customer_num = cus.customer_num_referedBy
+		LEFT JOIN (
+			  SELECT ord.customer_num, SUM(it.quantity * it.unit_price) monto_total
+			  FROM orders ord JOIN items it ON it.order_num = ord.order_num
+			  WHERE '2015-01-01' <= ord.order_date AND ord.order_date < '2015-12-31' 
+			  GROUP BY ord.customer_num
+			  ) cr ON cr.customer_num = ref.customer_num
+WHERE cc.monto_total > COALESCE(cr.monto_total, 0)
+ORDER BY cc.monto_total DESC, cr.monto_total DESC

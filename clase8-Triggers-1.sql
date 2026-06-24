@@ -146,6 +146,8 @@ BEGIN
 END;
 GO
 
+-- punto 7
+
 CREATE VIEW prodcuts_x_fabricante AS
 SELECT i.stock_num, pt.description, i.manu_code, m.manu_name, i.unit_price
 FROM items i

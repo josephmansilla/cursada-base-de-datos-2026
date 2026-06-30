@@ -1,6 +1,13 @@
 -- Mas queries complejos 2
 
 -- PUNTO 9
+--Listar el Número, nombre, apellido, estado, cantidad de Órdenes y monto total comprado durante el
+--año 2015 de todo los clientes que no sean del estado de Florida.
+--Mostrar sólo aquellos clientes cuyo monto total comprado sea mayor al promedio del monto total
+--comprado de los Clientes que no sean del estado Florida.
+--Ordenar la información por el monto total comprado en forma descendente.
+
+
 -- FILAS ANTES DEL HAVING
 SELECT cus.customer_num, 
 		cus.fname AS nombre, 
@@ -53,33 +60,35 @@ ORDER BY SUM(itm.unit_price * itm.quantity) DESC;
 
 -- PUNTO 10
 
+--10. Seleccionar todos los clientes cuyo monto total comprado sea mayor al de su refererente durante el
+--año 2015. Mostrar número, nombre, apellido y los montos totales comprados de ambos durante ese
+--año. Tener en cuenta que un cliente puede no tener referente y que el referente pudo no haber
+--comprado nada durante el año 2015, mostrarlo igual.
+
 SELECT cus.customer_num AS numero_cliente,
 	cus.fname AS nombre,
 	cus.lname AS apellido,
-	SUM(itm.unit_price * itm.quantity) AS monto_total,
+	SUM(itm.unit_price * itm.quantity) AS monto_total, -- 3
 	ref.customer_num AS numero_cliente_ref,
 	ref.fname AS nombre_referido,
 	ref.lname AS apellido_referido,
-	(SELECT SUM(quantity * unit_price) as total
-	 FROM items itm2
-			JOIN orders ord2 ON itm2.order_num = cus.customer_num_referedBy
-	 WHERE '2015-01-01' <= ord2.order_date AND ord2.order_date < '2015-12-31' 
-		AND ord2.customer_num = cus.customer_num_referedBy
-	) AS monto_total_referente
+	cr.total AS monto_total_referente
 FROM customer cus
 		LEFT JOIN customer ref ON ref.customer_num = cus.customer_num_referedBy
 		JOIN orders ord ON cus.customer_num = ord.customer_num
 		JOIN items itm ON itm.order_num = ord.order_num
+		JOIN (SELECT ord2.customer_num AS cliente, SUM(quantity * unit_price) as total
+				FROM items itm2 JOIN orders ord2 ON itm2.order_num = ord2.customer_num
+				WHERE '2015-01-01' <= ord2.order_date AND ord2.order_date < '2015-12-31' 
+						AND ord2.customer_num = ord2.customer_num
+			  ) cr ON cr.cliente = ref.customer_num
 WHERE '2015-01-01' <= ord.order_date AND ord.order_date < '2015-12-31'
 GROUP BY ord.order_num, cus.customer_num, cus.fname, cus.lname, cus.customer_num_referedBy
-HAVING SUM(itm.unit_price * itm.quantity) > 
-		COALESCE((SELECT SUM(quantity * unit_price) as total
-		 FROM items itm2
-				JOIN orders ord2 ON itm2.order_num = cus.customer_num_referedBy
-		 WHERE '2015-01-01' <= ord2.order_date AND ord2.order_date < '2015-12-31' 
-			AND ord2.customer_num = cus.customer_num_referedBy),0)
+HAVING SUM(itm.unit_price * itm.quantity) > COALESCE(cr.total,0)
 ORDER BY 3
 
+
+-- RECURSIVIDAD
 
 SELECT cus.customer_num AS numero_cliente,
 	cus.fname AS nombre,

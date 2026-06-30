@@ -1,4 +1,16 @@
 -- PUNTO 1
+--1) Crear una vista que devuelva:
+--a) Código y Nombre (manu_code,manu_name) de los fabricante, posean o no productos
+--(en tabla Products), cantidad de productos que fabrican (cant_producto) y la fecha de
+--la última OC que contenga un producto suyo (ult_fecha_orden).
+--		De los fabricantes que fabriquen productos sólo se podrán mostrar los que
+--		fabriquen más de 2 productos.
+--		No se permite utilizar funciones definidas por usuario, ni tablas temporales, ni UNION.
+--b) Realizar una consulta sobre la vista que devuelva manu_code, manu_name,
+--cant_producto y si el campo ult_fecha_orden posee un NULL informar ‘No Posee
+--Órdenes’ si no posee NULL informar el valor de dicho campo.
+--		No se puede utilizar UNION para el SELECT.
+
 DROP VIEW V_manufacturadores;
 GO
 
@@ -28,6 +40,15 @@ GO
 
 -- PUNTO 2
 
+--2) Desarrollar una consulta ABC de fabricantes que:
+--Liste el código y nombre del fabricante, la cantidad de órdenes de compra que contengan
+--sus productos y la monto total de los productos vendidos.
+--Mostrar sólo los fabricantes cuyo código comience con A ó con N y posea 3 letras, y los
+--productos cuya descripción posean el string “tennis” ó el string “ball” en cualquier parte del
+--nombre y cuyo monto total vendido sea mayor que el total de ventas promedio de todos
+--los fabricantes (Cantidad * precio unitario / Cantidad de fabricantes que vendieron sus productos).
+--Mostrar los registros ordenados por monto total vendido de mayor a menor.
+
 SELECT m.manu_code, 
 		m.manu_name,
 		COUNT(DISTINCT i.order_num) AS cant_ordenes,
@@ -49,6 +70,18 @@ ORDER BY monto_total DESC;
 GO
 
 -- PUNTO 3
+--Crear una vista que devuelva
+--Para cada cliente mostrar (customer_num, lname, company), cantidad de órdenes
+--de compra, fecha de su última OC, monto total comprado y el total general
+--comprado por todos los clientes.
+--De los clientes que posean órdenes sólo se podrán mostrar los clientes que tengan
+--alguna orden que posea productos que son fabricados por más de dos fabricantes y
+--que tengan al menos 3 órdenes de compra.
+--Ordenar el reporte de tal forma que primero aparezcan los clientes que tengan
+--órdenes por cantidad de órdenes descendente y luego los clientes que no tengan
+--órdenes.
+--No se permite utilizar funciones, ni tablas temporales.
+
 DROP VIEW V_cliente;
 GO
 
@@ -75,6 +108,12 @@ GO
 SELECT * FROM V_cliente ORDER BY cantidad_ordenes DESC;
 
 -- PUNTO 4
+
+--Crear una consulta que devuelva los 5 STATES relacionados a los Customers de
+--mayor facturación, el tipo de producto de mayor facturación de ese estado, el monto
+--total facturado del producto y el monto total facturado del state.
+--i) Mostrar la información ordenada por el monto total facturado del State en forma descendente.
+--ii) Nota: No se permite utilizar funciones, ni tablas temporales.
 
 SELECT 
 	primero.state AS estado,
@@ -110,6 +149,12 @@ ON primero.state = segundo.state
 ORDER BY monto_total_estado DESC;
 
 -- PUNTO 5
+
+--Listar los customers que no posean órdenes de compra y aquellos cuyas últimas
+--órdenes de compra superen el promedio de todas las anteriores.
+--Mostrar customer_num, fname, lname, paid_date y el monto total de la orden que
+--supere el promedio de las anteriores. Ordenar el resultado por monto total en forma
+--descendiente.
 
 SELECT cus.customer_num AS numero_cliente,
 		cus.fname AS nombre,
@@ -164,6 +209,15 @@ ORDER BY 5 DESC
 
 
 -- PUNTO 6
+
+--Se desean saber los fabricantes que vendieron mayor cantidad de un mismo
+--producto que la competencia según la cantidad vendida. Tener en cuenta que puede
+--existir un producto que no sea fabricado por ningún otro fabricante y que puede
+--haber varios fabricantes que tengan la misma cantidad máxima vendida.
+--Mostrar el código del producto, descripción del producto, código de fabricante,
+--cantidad vendida, monto total vendido. Ordenar el resultado código de producto, por
+--cantidad total vendida y por monto total, ambos en forma decreciente.
+--Nota: No se permiten utilizar funciones, ni tablas temporales.
 
 -- PRIMERA ITERACION DONDE SE PUEDE VER LOS TOTALES DE CADA MANUFACT
 SELECT p1.stock_num,

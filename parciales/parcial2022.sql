@@ -20,7 +20,7 @@
 
 -- subqueries necesarias para entender el dominio necesario
 
-SELECT DISTINCT TOP 3 m2.state AS estado, SUM(i2.quantity * i2.unit_price) AS venta_total
+SELECT TOP 3 m2.state AS estado, SUM(i2.quantity * i2.unit_price) AS venta_total
 FROM items i2 
 	JOIN manufact m2 ON (i2.manu_code = m2.manu_code)
 	JOIN orders o2 ON (i2.order_num = o2.order_num)
@@ -46,7 +46,7 @@ SELECT
 	SUM(i.quantity * i.unit_price) AS monto_total_fabricante
 FROM manufact m
 	JOIN state st ON (st.state = m.state)
-	JOIN (SELECT DISTINCT TOP 3 m2.state AS estado, SUM(i2.quantity * i2.unit_price) AS venta_total
+	JOIN (SELECT TOP 3 WITH TIES m2.state AS estado, SUM(i2.quantity * i2.unit_price) AS venta_total
 		  FROM items i2 
 				JOIN manufact m2 ON (i2.manu_code = m2.manu_code)
 				JOIN orders o2 ON (i2.order_num = o2.order_num)
@@ -56,7 +56,7 @@ FROM manufact m
 	 JOIN items i ON (i.manu_code = m.manu_code)
 	 JOIN orders o ON (o.order_num = i.order_num)
 GROUP BY st.sname, m.manu_name, ee.venta_total
-HAVING (ee.venta_total) > ((0.15) * SUM(i.quantity * i.unit_price))
+HAVING (ee.venta_total * (0.15) ) < ( SUM(i.quantity * i.unit_price))
 ORDER BY 2 DESC, 4 DESC;
 
 

@@ -62,7 +62,7 @@ Crear un procedimiento historicoVentasPR que reciba como parametro una fecha y q
 */
 CREATE TABLE nivelFabricantes(
     id_nivel_fab   INT      IDENTITY(1, 1) PRIMARY KEY,
-    fechaLimite    DATE     NOT NULL,
+    fechaLimite    DATE     NOT NULL, --PK
     manu_code      CHAR(3)  NOT NULL,
     cantFabricados INT,
     cantVendidos   INT      
@@ -71,7 +71,7 @@ CREATE TABLE nivelFabricantes(
 
 CREATE TABLE nivelProductos(
     id_nivel_productos INT         IDENTITY (1, 1) PRIMARY KEY,
-    fechaLimite         DATE        NOT NULL,
+    fechaLimite         DATE        NOT NULL, -- PK
     stock_num          SMALLINT    NOT NULL,
     manu_code          CHAR(3)    NOT NULL,
     cantidad           INT         NOT NULL,
@@ -83,7 +83,7 @@ CREATE PROCEDURE historicoVentasPR (@fechaLimite DATE)
 AS BEGIN
 	BEGIN TRY 
 		IF EXISTS (SELECT 1 FROM nivelFabricantes WHERE fechaLimite = @fechaLimite)
-				OR EXISTS (SELECT * FROM nivelProductos WHERE fechaLimite = @fechaLimite) THROW 50001, 'fecha limite ya usada', 16 
+				OR EXISTS (SELECT 1 FROM nivelProductos WHERE fechaLimite = @fechaLimite) THROW 50001, 'fecha limite ya usada', 16 
 		
 		BEGIN TRANSACTION
 
@@ -161,10 +161,10 @@ BEGIN
 		INSERT INTO audit_manufact (manu_code, fecha_operacion, valoresOld, valoresNew, operacion)
 		SELECT d.manu_code, 
 				GETDATE(),
-				d.manu_name + CAST(d.lead_time AS VARCHAR(255)) + CAST(d.state AS VARCHAR(255)), 
-				ISNULL((i.manu_name + CAST(i.lead_time AS VARCHAR(255)) + CAST(i.state AS VARCHAR(255))), ''), 
+				d.manu_name + CAST(d.lead_time AS CHAR(255)) + CAST(d.state AS CHAR(255)), 
+				ISNULL((i.manu_name + CAST(i.lead_time AS CHAR(255)) + CAST(i.state AS CHAR(255))), ''), 
 				--> yo estoy aclarando que sabia que si esto daba null me iba a marcarlo como vacio, entonces le pongo ese isnull realmente solamente para hacerme el canchero
-				IIF(EXISTS (SELECT * FROM inserted), 'M', 'B')
+				IIF(EXISTS (SELECT 1 FROM inserted), 'M', 'B')
 		FROM deleted d
 			LEFT JOIN inserted i ON (i.manu_code = d.manu_code)
 	END TRY

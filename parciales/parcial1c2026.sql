@@ -1,4 +1,17 @@
--- PUNTO 3 - QUERY
+--Punto 1 - Explicar la funcionalidad de seguridad de base de datos, explique los conceptos asociados y los objetos de BD 
+--que la implementan con un ejemplo de como lo implementan.
+
+--PUNTO 2 - Explique las diferentes formas existenhtes para implementar en un motor de base de datos 
+--la regla de integridad referencial.
+
+---- PUNTO 3 - QUERY
+--Seleccionar los tipos de productos y sus cantidades vendidadas para las fechas de emision de las ordenes de mayor
+--y menor monto vendido. Ordenar el resultado mostrando primero los tipos de productos vendidos en la fecha de mayor
+--monto vendido y luego los productos vendidos en la menor, dentro de cada fecha mostrar los productos
+--ordenados por el total de cantidades vendidas en forma descendente.
+
+--(Aclaración: solo mostrar la orden de mayor y menor facturacion de TODO el historial de ventas, mostrar cada item que tiene)
+
 
 SELECT * FROM (
 	SELECT TOP 1 
@@ -27,7 +40,16 @@ SELECT * FROM (
 ) as mayor_y_menor_monto_vendido;
 
 
--- PUNTO 4 - STORED PROCEDURE
+---- PUNTO 4 - STORED PROCEDURE
+--Crear un procedimiento procesarClientesPR el cual otmara de una tabla NovedadesClienets la siguiente información:
+
+--(customer_num, lname, fname, company, state)
+
+--Por cada registro de la tabla NovedadesClientes se deberá evaluar:
+--   - Si el cliente existe en la tabla clientes, se deberá modificar dicho cliente en la tabla Clientes con los datos 
+--	leidos de la tabla de novedades.
+--   - Si el cliente no existe en la tabla clientes, se deberá insertar el cliente en la tabla Clientes con lkos datos leidos
+--   de la tabla de novedades.
 
 CREATE TABLE novedades_cliente(
 	customer_num SMALLINT,
@@ -52,7 +74,7 @@ AS BEGIN
 	@customer_num, @fname, @lname, @company, @state;
 	
 	WHILE (@@FETCH_STATUS = 0)
-	BEGIN
+	BEGIN   
 		BEGIN TRY 
 			BEGIN TRANSACTION;
 			
@@ -88,6 +110,14 @@ AS BEGIN
 END;
 
 -- PUNTO 5 - TRIGGER
+--Realizar un trigger que no permitea a los fabricantes de new jersey vender a clientes situados en New Jersey. Cuando
+--se quiera insertar un fila con una orden no permitida informar el error y no realizar ninguna operacion.
+
+--Además, como las operaciones pueden ser masivas, si hay items que pertenecen a más de una orden, informar el error y
+--cancelar todas las operaciones.
+
+--En caso realizar una operación inválida, borrar las órdenes inválidas que hayan sido creadas.
+
 GO
 CREATE TRIGGER tgr_orden_tierra_del_fuego
 ON orders
